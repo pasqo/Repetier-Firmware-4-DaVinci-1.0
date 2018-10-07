@@ -5842,7 +5842,7 @@ case UI_ACTION_LOAD_FAILSAFE:
             playsound(4000,240);
             playsound(5000,240);
             pushMenu(&ui_menu_manual_level_page9,true);
-            step =STEP_MANUAL_LEVEL_PAGE9;
+            step =STEP_MANUAL_LEVEL_PAGE10; // pasqo: skip last page.
             break;
           case  STEP_MANUAL_LEVEL_POINT_5:
             //go to point 5

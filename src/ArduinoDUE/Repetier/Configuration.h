@@ -26,7 +26,7 @@
 #define REPURPOSE_FAN_TO_COOL_EXTRUSIONS 0 //Setting this to 1 will repurpose the main Extruder cooling fan to be controlled VIA M106/M107
                                            //Warning: for DaVinci 1.0 need to add a permanent fan with power supply to cool extruder
 
-#define UI_VERSION_STRING "Repetier Pasqo 3"
+#define UI_VERSION_STRING "Repetier Pasqo 4"
 
 // ################ END MANUAL SETTINGS ##########################
 
@@ -852,7 +852,7 @@ Heat manager for heated bed:
 2 = Bang Bang, limited check every HEATED_BED_SET_INTERVAL. Use this with relay-driven beds to save life time
 3 = dead time control
 */
-#define HEATED_BED_HEAT_MANAGER 2
+#define HEATED_BED_HEAT_MANAGER 1
 /** \brief The maximum value, I-gain can contribute to the output.
 The precise values may differ for different nozzle/resistor combination.
  Overridden if EEPROM activated.
@@ -1571,7 +1571,7 @@ This defines the full power duration before returning to set value. Time is in m
 
 
 
-/* A watchdog resets the printer, if a signal is not send within predefined time limits. That way we can be sure that the board
+/* A watchdog resets the printer if a signal is not sent within predefined time limits. That way we can be sure that the board
 is always running and is not hung up for some unknown reason. 
 
 IMPORTANT: The ARM processors need a special board definition to work properly. 
@@ -1598,8 +1598,8 @@ to recalibrate z.
 #define Z_PROBE_Z_OFFSET_MODE 0
 
 #if DAVINCI > 0
-#define FEATURE_Z_PROBE true
-#define Z_PROBE_PIN 117
+#define FEATURE_Z_PROBE false
+#define Z_PROBE_PIN -1 // 117
 #else
 #define FEATURE_Z_PROBE false
 #define Z_PROBE_PIN -1
@@ -1676,7 +1676,7 @@ motorized bed leveling */
    This feature requires a working z-probe and you should have z-endstop at the top not at the bottom.
    The same 3 points are used for the G29 command.
 */
-#define FEATURE_AUTOLEVEL true
+#define FEATURE_AUTOLEVEL false
 #if DAVINCI==1
 #define Z_PROBE_X1 -7
 #define Z_PROBE_Y1 -10
@@ -1689,15 +1689,18 @@ motorized bed leveling */
 #define Z_PROBE_Y2 203
 #define Z_PROBE_Y3 203
 #endif
-//Manual bed leveling
+// Manual bed leveling
+// pasqo: for manual bed leveling of a fairly planar bed we want to set
+// each knob independently first and then we check the center of the bed
+// and lower if needed.
 #define MANUAL_LEVEL_X1 100
-#define MANUAL_LEVEL_Y1 190
-#define MANUAL_LEVEL_X2 100
-#define MANUAL_LEVEL_Y2 10
-#define MANUAL_LEVEL_X3 10
-#define MANUAL_LEVEL_Y3  100
-#define MANUAL_LEVEL_X4  190
-#define MANUAL_LEVEL_Y4  100
+#define MANUAL_LEVEL_Y1 185
+#define MANUAL_LEVEL_X2 185
+#define MANUAL_LEVEL_Y2 30
+#define MANUAL_LEVEL_X3 15
+#define MANUAL_LEVEL_Y3 30
+#define MANUAL_LEVEL_X4 100
+#define MANUAL_LEVEL_Y4 100
 #endif
 
 #if DAVINCI==2 || DAVINCI==3
