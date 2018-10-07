@@ -26,6 +26,8 @@
 #define REPURPOSE_FAN_TO_COOL_EXTRUSIONS 0 //Setting this to 1 will repurpose the main Extruder cooling fan to be controlled VIA M106/M107
                                            //Warning: for DaVinci 1.0 need to add a permanent fan with power supply to cool extruder
 
+#define UI_VERSION_STRING "Repetier Pasqo 3"
+
 // ################ END MANUAL SETTINGS ##########################
 
 //Version
@@ -174,7 +176,7 @@ To override EEPROM settings with config settings, set EEPROM_MODE 0
 // DUE3DOM MINI                 = 411
 // Alligator Board rev1         = 500
 // Alligator Board rev2         = 501
-//DaVinci                              = 999
+// DaVinci                      = 999
 
 #if DAVINCI==0
 #define MOTHERBOARD 402
@@ -337,7 +339,7 @@ controlled by settings in extruder 0 definition. */
 #define EXT0_Y_OFFSET 0
 #define EXT0_Z_OFFSET 0
 // for skeinforge 40 and later, steps to pull the plastic 1 mm inside the extruder, not out.  Overridden if EEPROM activated.
-#define EXT0_STEPS_PER_MM 99 //425 // 825.698 //457
+#define EXT0_STEPS_PER_MM 104 //425 // 825.698 //457
 // What type of sensor is used?
 // 1 is 100k thermistor (Epcos B57560G0107F000 - RepRap-Fab.org and many other)
 // 2 is 200k thermistor
@@ -362,7 +364,7 @@ controlled by settings in extruder 0 definition. */
 // 100 is AD595
 // 101 is MAX6675
 // 102 is MAX31855
-#define EXT0_TEMPSENSOR_TYPE 5
+#define EXT0_TEMPSENSOR_TYPE 7 // use 7 for (semitec 104GT-2 || 10k) + 4.7k.
 // Analog input pin for reading temperatures or pin enabling SS for MAX6675
 #define EXT0_TEMPSENSOR_PIN TEMP_0_PIN
 // Which pin enables the heater
@@ -467,7 +469,7 @@ The codes are only executed for multiple extruder when changing the extruder. */
 #if DAVINCI==3
 #define EXT0_EXTRUDER_COOLER_PIN ORIG_FAN2_PIN
 #else
-#define EXT0_EXTRUDER_COOLER_PIN ORIG_FAN_PIN
+#define EXT0_EXTRUDER_COOLER_PIN ORIG_FAN2_PIN // E3Dv6 mod 12V fan on pin D4.
 #endif
 /** PWM speed for the cooler fan. 0=off 255=full speed */
 #define EXT0_EXTRUDER_COOLER_SPEED 255
@@ -711,7 +713,7 @@ each line, except the last, with a backslash. The table format is {{adc1,temp1},
 increasing adc values. For more informations, read
 http://hydraraptor.blogspot.com/2007/10/measuring-temperature-easy-way.html
 
-If you have a sprinter temperature table, you have to multiply the first value with 4 and the second with 8.
+If you have a printer temperature table, you have to multiply the first value with 4 and the second with 8.
 This firmware works with increased precision, so the value reads go from 0 to 4095 and the temperature is
 temperature*8.
 
@@ -726,9 +728,10 @@ If you have a PTC thermistor instead of a NTC thermistor, keep the adc values in
 #define NUM_TEMPS_USERTHERMISTOR1 19
 #define USER_THERMISTORTABLE1 {{628,1280},{859,1200},{1113,1120},{1382,1040},{1660,960},{1938,880},{2211,800},{2473,720},{2718,640},{2945,560},{3148,480},{3328,400},{3482,320},{3613,240},{3722,160},{3815,80},{3895,0},{3972,-80},{4055,-160}}
 
-/** Number of entries in the user thermistor table 2. Set to 0 to disable it. */
-#define NUM_TEMPS_USERTHERMISTOR2 0
-#define USER_THERMISTORTABLE2  {}
+// pasqo: Custom table for DaVinci 1.0 with ATC semitec 104GT-2 thermistor and parallel R1=10kohm,
+// series R2=4.7kohm with resistor values taken from http://www.atcsemitec.co.uk/gt-2-glass-thermistors.html.
+#define NUM_TEMPS_USERTHERMISTOR2 33
+#define USER_THERMISTORTABLE2 {{69,2400},{79,2320},{91,2240},{105,2160},{123,2080},{144,2000},{169,1920},{200,1840},{237,1760},{282,1680},{337,1600},{403,1520},{484,1440},{581,1360},{696,1280},{832,1200},{989,1120},{1165,1040},{1359,960},{1563,880},{1769,800},{1968,720},{2150,640},{2308,560},{2440,480},{2544,400},{2622,320},{2678,240},{2718,160},{2744,80},{2761,0},{2772,-80},{2779,-160}}
 
 #else
 #define NUM_TEMPS_USERTHERMISTOR0 28
@@ -1856,20 +1859,20 @@ Separate commands by \n */
 the FAN pin is not the same as for your second extruder. RAMPS e.g. has FAN_PIN in 9 which
 is also used for the heater if you have 2 extruders connected. */
 #if REPURPOSE_FAN_TO_COOL_EXTRUSIONS == 1
-#define FEATURE_FAN_CONTROL 1
-#define FAN_PIN ORIG_FAN_PIN
+  #define FEATURE_FAN_CONTROL 1
+  #define FAN_PIN ORIG_FAN_PIN
   #if DAVINCI == 2 || DAVINCI == 3
-      #undef EXT0_EXTRUDER_COOLER_PIN
-      #define EXT0_EXTRUDER_COOLER_PIN ORIG_FAN2_PIN
-      #define EXT1_EXTRUDER_COOLER_PIN ORIG_FAN2_PIN
+    #undef EXT0_EXTRUDER_COOLER_PIN
+    #define EXT0_EXTRUDER_COOLER_PIN ORIG_FAN2_PIN
+    #define EXT1_EXTRUDER_COOLER_PIN ORIG_FAN2_PIN
   #else //DaVinci 1.0
-        #undef EXT0_EXTRUDER_COOLER_PIN
-        #define EXT0_EXTRUDER_COOLER_PIN -1 //Warning need to add a permanent fan with power supply to cool extruder
+    #undef EXT0_EXTRUDER_COOLER_PIN
+    #define EXT0_EXTRUDER_COOLER_PIN -1 //Warning need to add a permanent fan with power supply to cool extruder
   #endif
 #else
-  #undef  FAN_PIN
-  #define FAN_PIN -1
-  #define FEATURE_FAN_CONTROL 0
+  #undef FAN_PIN
+  #define FAN_PIN ORIG_FAN_PIN // E3Dv6 mod, use pin D25 for feature fan.
+  #define FEATURE_FAN_CONTROL 1
 #endif
 
 /* You can have a second fan controlled by adding P1 to M106/M107 command. */ 
