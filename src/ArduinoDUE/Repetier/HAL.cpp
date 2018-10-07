@@ -974,7 +974,8 @@ void PWM_TIMER_VECTOR ()
   static uint8_t pwm_pos_set[NUM_PWM];
   static uint8_t pwm_cooler_pos_set[NUM_EXTRUDER];
 
-  if (pwm_count_heater == 0 && !PDM_FOR_EXTRUDER)
+#if !PDM_FOR_EXTRUDER
+  if (pwm_count_heater == 0)
   {
 #if defined(EXT0_HEATER_PIN) && EXT0_HEATER_PIN > -1
     if ((pwm_pos_set[0] = (pwm_pos[0] & HEATER_PWM_MASK)) > 0) WRITE(EXT0_HEATER_PIN, !HEATER_PINS_INVERTED);
@@ -998,7 +999,10 @@ void PWM_TIMER_VECTOR ()
     if ((pwm_pos_set[NUM_EXTRUDER] = pwm_pos[NUM_EXTRUDER]) > 0) WRITE(HEATED_BED_HEATER_PIN, !HEATER_PINS_INVERTED);
 #endif
   }
-  if (pwm_count_cooler == 0 && !PDM_FOR_COOLER)
+#endif // !PDM_FOR_EXTRUDER
+
+#if !PDM_FOR_COOLER
+  if (pwm_count_cooler == 0)
   {
 #if defined(EXT0_HEATER_PIN) && EXT0_HEATER_PIN > -1 && EXT0_EXTRUDER_COOLER_PIN > -1
     if ((pwm_cooler_pos_set[0] = (extruder[0].coolerPWM & COOLER_PWM_MASK)) > 0) WRITE(EXT0_EXTRUDER_COOLER_PIN, 1);
@@ -1041,6 +1045,8 @@ void PWM_TIMER_VECTOR ()
 		if((pwm_pos_set[PWM_FAN_THERMO] = (pwm_pos[PWM_FAN_THERMO] & COOLER_PWM_MASK)) > 0) WRITE(FAN_THERMO_PIN,1);
 #endif
   }
+#endif // !PDM_FOR_COOLER
+
 #if defined(EXT0_HEATER_PIN) && EXT0_HEATER_PIN > -1
 #if PDM_FOR_EXTRUDER
   pulseDensityModulate(EXT0_HEATER_PIN, pwm_pos[0], pwm_pos_set[0], HEATER_PINS_INVERTED);
@@ -1140,6 +1146,11 @@ void PWM_TIMER_VECTOR ()
 #else
         if(pwm_pos_set[PWM_FAN1] == pwm_count_cooler && pwm_pos_set[PWM_FAN1] != COOLER_PWM_MASK) WRITE(FAN_PIN,0);
 #endif
+    }
+    else
+    {
+    	// pasqo: explicitly set pin high when in kickstart interval.
+    	WRITE(FAN_PIN, 1);
     }
 #endif
 #if FAN2_PIN > -1 && FEATURE_FAN2_CONTROL

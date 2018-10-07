@@ -26,3 +26,9 @@ Repetier.depend
 Repetier.layout
 activate*.bat
 ~$Translate.xlsx
+/build/
+.cproject
+.gitignore
+.project
+.settings
+

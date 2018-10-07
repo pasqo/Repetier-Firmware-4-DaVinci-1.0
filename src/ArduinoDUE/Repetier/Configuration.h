@@ -26,7 +26,7 @@
 #define REPURPOSE_FAN_TO_COOL_EXTRUSIONS 0 //Setting this to 1 will repurpose the main Extruder cooling fan to be controlled VIA M106/M107
                                            //Warning: for DaVinci 1.0 need to add a permanent fan with power supply to cool extruder
 
-#define UI_VERSION_STRING "Repetier Pasqo 4"
+#define UI_VERSION_STRING "Repetier Pasqo 5"
 
 // ################ END MANUAL SETTINGS ##########################
 

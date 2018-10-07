@@ -529,10 +529,13 @@ void Printer::setFanSpeedDirectly(uint8_t speed) {
     if(pwm_pos[PWM_FAN1] == speed)
         return;
 #if FAN_KICKSTART_TIME
-    if(fanKickstart == 0 && speed > pwm_pos[PWM_FAN1] && speed < 85)
+    // pasqo: kickstart only makes sense when the fan is not moving and the
+    // current set speed is zero but for small speeds it may still not be
+    // moving and we need to kickstart again. Increase threshold to 50%
+    // for non-sensitive fans.
+    if(fanKickstart == 0 && speed > pwm_pos[PWM_FAN1] && speed < 128)
     {
-         if(pwm_pos[PWM_FAN1]) fanKickstart = FAN_KICKSTART_TIME / 100;
-         else                  fanKickstart = FAN_KICKSTART_TIME / 25;
+    	fanKickstart = FAN_KICKSTART_TIME / 100;
     }
 #endif
     pwm_pos[PWM_FAN1] = speed;
