@@ -1,4 +1,4 @@
-## Repetier FW for the Da Vinci 1.0 with an E3Dv6 extruder.
+## Repetier FW for the Da Vinci 1.0 printer with an E3Dv6 extruder.
 
 This is a fork of the excellent port of the Repetier FW for Da Vinci printers by luc-github [here](https://github.com/luc-github/Repetier-Firmware-0.92).
 
