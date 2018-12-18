@@ -26,7 +26,7 @@
 #define REPURPOSE_FAN_TO_COOL_EXTRUSIONS 0 //Setting this to 1 will repurpose the main Extruder cooling fan to be controlled VIA M106/M107
                                            //Warning: for DaVinci 1.0 need to add a permanent fan with power supply to cool extruder
 
-#define UI_VERSION_STRING "Repetier Pasqo 5"
+#define UI_VERSION_STRING "Repetier Pasqo 6"
 
 // ################ END MANUAL SETTINGS ##########################
 
@@ -339,7 +339,7 @@ controlled by settings in extruder 0 definition. */
 #define EXT0_Y_OFFSET 0
 #define EXT0_Z_OFFSET 0
 // for skeinforge 40 and later, steps to pull the plastic 1 mm inside the extruder, not out.  Overridden if EEPROM activated.
-#define EXT0_STEPS_PER_MM 104 //425 // 825.698 //457
+#define EXT0_STEPS_PER_MM 100 //425 // 825.698 //457
 // What type of sensor is used?
 // 1 is 100k thermistor (Epcos B57560G0107F000 - RepRap-Fab.org and many other)
 // 2 is 200k thermistor
@@ -620,8 +620,8 @@ M140 command, after a given temperature is reached. */
 /** auto-retract converts pure extrusion moves into retractions. Beware that 
  simple extrusion e.g. over Repetier-Host will then not work! */
 #define AUTORETRACT_ENABLED 0
-#define RETRACTION_LENGTH 3
-#define RETRACTION_LONG_LENGTH 13
+#define RETRACTION_LENGTH 1
+#define RETRACTION_LONG_LENGTH 4
 #define RETRACTION_SPEED 40
 #define RETRACTION_Z_LIFT 0
 #define RETRACTION_UNDO_EXTRA_LENGTH 0
@@ -1273,7 +1273,7 @@ Mega. Used only for nonlinear systems like delta or tuga. */
  * first a z home to get some reference, then raise to ZHOME_HEAT_HEIGHT do xy homing and then after
  * heating to minimum ZHOME_MIN_TEMPERATURE will z home again for correct height.   
  * */
-#define HOMING_ORDER HOME_ORDER_XYZ
+#define HOMING_ORDER HOME_ORDER_XYZ // pasqo: TODO with Z probe is zmin stop if want to do it
 // Used for homing order HOME_ORDER_ZXYTZ
 #define ZHOME_MIN_TEMPERATURE 0
 // needs to heat all extruders (1) or only current extruder (0)
@@ -1284,15 +1284,15 @@ Mega. Used only for nonlinear systems like delta or tuga. */
 // you can define a predefined x,y position so beding is always the same and
 // can be compensated. Set coordinate to 999999 to ignore positions and just
 // use the position you are at.
-#define ZHOME_X_POS IGNORE_COORDINATE
-#define ZHOME_Y_POS IGNORE_COORDINATE
+#define ZHOME_X_POS 100
+#define ZHOME_Y_POS 100
 
 /* If you have a backlash in both z-directions, you can use this. For most printer, the bed will be pushed down by it's
 own weight, so this is nearly never needed. */
-#define ENABLE_BACKLASH_COMPENSATION 0
+#define ENABLE_BACKLASH_COMPENSATION 1
 #define Z_BACKLASH 0
-#define X_BACKLASH 0
-#define Y_BACKLASH 0
+#define X_BACKLASH 0.04
+#define Y_BACKLASH 0.16
 
 /** Comment this to disable ramp acceleration */
 #define RAMP_ACCELERATION 1
@@ -1552,14 +1552,14 @@ Servos are controlled by a pulse width normally between 500 and 2500 with 1500ms
 WARNING: Servos can draw a considerable amount of current. Make sure your system can handle this or you may risk your hardware!
 */
 
-#define FEATURE_SERVO 0
+#define FEATURE_SERVO 0 // pasqo: do this in v7
 // Servo pins on a RAMPS board are 11,6,5,4
-#define SERVO0_PIN 11
-#define SERVO1_PIN 6
-#define SERVO2_PIN 5
-#define SERVO3_PIN 4
+#define SERVO0_PIN 115 // pasqo: use the cartridge pin for the BLTouch servo.
+#define SERVO1_PIN  -1
+#define SERVO2_PIN  -1
+#define SERVO3_PIN  -1
 /* for set servo(s) at designed neutral position at power-up. Values < 500 mean no start position */
-#define SERVO0_NEUTRAL_POS  1300
+#define SERVO0_NEUTRAL_POS  1500 // pasqo: BLTouch retracted at power-on.
 #define SERVO1_NEUTRAL_POS  -1
 #define SERVO2_NEUTRAL_POS  -1
 #define SERVO3_NEUTRAL_POS  -1
@@ -1598,39 +1598,48 @@ to recalibrate z.
 #define Z_PROBE_Z_OFFSET_MODE 0
 
 #if DAVINCI > 0
-#define FEATURE_Z_PROBE false
-#define Z_PROBE_PIN -1 // 117
+#define FEATURE_Z_PROBE          false // pasqo: do it in v7
+#define Z_PROBE_PIN               117 // pasqo: BLTouch sensor using old bed sensor pin
 #else
-#define FEATURE_Z_PROBE false
-#define Z_PROBE_PIN -1
+#define FEATURE_Z_PROBE         false
+#define Z_PROBE_PIN                -1
 #endif
-#define Z_PROBE_PULLUP 1
-#define Z_PROBE_ON_HIGH 0
-#define Z_PROBE_X_OFFSET 0
-#define Z_PROBE_Y_OFFSET 0
-#define Z_PROBE_BED_DISTANCE 5.0 // Higher than max bed level distance error in mm
+#define Z_PROBE_PULLUP              0 // pasqo: BLTouch
+#define Z_PROBE_ON_HIGH             1 // pasqo: BLTouch
+#define Z_PROBE_X_OFFSET           40 // pasqo: BLTouch custom mount: the DV1.0 has X_HOME = -33 
+                                      // therefore we can have the probe anywhere with X > 7
+                                      // which is ok for the closest knob at X = 15
+#define Z_PROBE_Y_OFFSET            0 // pasqo: BLTouch custom mount.
+#define Z_PROBE_BED_DISTANCE       10 // pasqo: TODO: Z at which probing starts.
+                                      // Make sure the bed is in a sane state
+                                      // after manual leveling and distance is safe.
+                                      // Lower to minimum after calibration.
 
 // Waits for a signal to start. Valid signals are probe hit and ok button.
 // This is needful if you have the probe trigger by hand.
-#define Z_PROBE_WAIT_BEFORE_TEST 0
-/** Speed of z-axis in mm/s when probing */
-#define Z_PROBE_SPEED 1
-#define Z_PROBE_XY_SPEED 30
-#define Z_PROBE_SWITCHING_DISTANCE 5 // Distance to safely switch off probe after it was activated
-#define Z_PROBE_REPETITIONS 1 // Repetitions for probing at one point. 
+#define Z_PROBE_WAIT_BEFORE_TEST    0
+#define Z_PROBE_SPEED               1 /** Speed of z-axis in mm/s when probing */
+#define Z_PROBE_XY_SPEED           30 // pasqo: TODO
+#define Z_PROBE_SWITCHING_DISTANCE  4 // BLTouch. Distance to safely switch off probe after it was activated
+#define Z_PROBE_REPETITIONS         2 // pasqo: TODO. BLTouch. Repetitions for probing at one point. 
 /** The height is the difference between activated probe position and nozzle height. */
 #if MODEL==0
-#define Z_PROBE_HEIGHT 0.28
+// pasqo: Z_PROBE_HEIGHT is the height difference between z-probe tip in trigger mode and the bed (at Z=0).
+// The distance between the bed/extruder-tip(at ideal Z=0) and the tip of the sensor
+// when extended. So this means that probing starts at Z = Z_PROBE_BED_DISTANCE + Z_PROBE_HEIGHT
+// and ends at Z=Z_PROBE_HEIGHT.
+#define Z_PROBE_HEIGHT              0 // pasqo: TODO: BLTouch: adjust in EEPROM
+                                      // positive, should be around a few mm, 2 to 4?
 #else
-#define Z_PROBE_HEIGHT 0.54
+#define Z_PROBE_HEIGHT           0.54
 #endif
 /** These scripts are run before resp. after the z-probe is done. Add here code to activate/deactivate probe if needed. */
-#define Z_PROBE_START_SCRIPT ""
-#define Z_PROBE_FINISHED_SCRIPT ""
+#define Z_PROBE_START_SCRIPT       "M340 P0 S700"  // pasqo: BLTouch extended.
+#define Z_PROBE_FINISHED_SCRIPT    "M340 P0 S1500" // pasqo: BLTouch retracted.
 /** Set 1 if you need a hot extruder for good probe results. Normally only required if nozzle is probe. */
-#define Z_PROBE_REQUIRES_HEATING 0
+#define Z_PROBE_REQUIRES_HEATING    0
 /** Minimum extruder temperature for probing. If it is lower, it will be increased to that value. */
-#define Z_PROBE_MIN_TEMPERATURE 150
+#define Z_PROBE_MIN_TEMPERATURE   150
 /*
 Define how we measure the bed rotation. 
 All methods need at least 3 points to define the bed rotation correctly. The quality we get comes
@@ -1676,19 +1685,17 @@ motorized bed leveling */
    This feature requires a working z-probe and you should have z-endstop at the top not at the bottom.
    The same 3 points are used for the G29 command.
 */
-#define FEATURE_AUTOLEVEL false
+#define FEATURE_AUTOLEVEL false // pasqo: TODO
+// Auto bed leveling.
+// pasqo: points correspond to knobs.
+// Check is clockwise starting from center knob.
 #if DAVINCI==1
-#define Z_PROBE_X1 -7
-#define Z_PROBE_Y1 -10
-#define Z_PROBE_X2 -7
-#define Z_PROBE_X3 179
-#if MODEL==0
-#define Z_PROBE_Y2 205
-#define Z_PROBE_Y3 205
-#else
-#define Z_PROBE_Y2 203
-#define Z_PROBE_Y3 203
-#endif
+#define Z_PROBE_X1 100
+#define Z_PROBE_Y1 185
+#define Z_PROBE_X2 185
+#define Z_PROBE_Y2  30
+#define Z_PROBE_X3  15
+#define Z_PROBE_Y3  30
 // Manual bed leveling
 // pasqo: for manual bed leveling of a fairly planar bed we want to set
 // each knob independently first and then we check the center of the bed
