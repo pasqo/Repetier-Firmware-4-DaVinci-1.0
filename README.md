@@ -11,6 +11,7 @@ Details of the modifications with 3D printed parts and pictures can be found in 
 * Added wiring and soldered through-hole components to the mother board to connect the v6 30mm 12V extruder cooler fan and enable the FW to switch it on and off as was done for the original cooler fan.
 * The filament sensor daughter board is reused and retaines its original functions of sensor and filament guide.
 * The original 5V 40mm extruder cooler fan is reused as feature cooler fan using my [remixed 40mm fun duct](https://www.thingiverse.com/thing:3131742). For a quieter operation of the fan at low speeds connect a 470μF 25V electrolitic capacitor in parallel, making sure to respect the polarity of the leads.
+* Added a [BLTouch smart Z probe sensor](https://www.antclabs.com/bltouch) re-purposing the unused cartridge 1 and 2 pins.
 
 ### FW Modifications ###
 
@@ -25,3 +26,5 @@ Note that the table includes the R1=10kΩ and R2=4.7kΩ resistor network on the 
 * Changed the manual bed leveling points to 4 points only, one over each knobs and one over the center.
 * Changed manual bed leveling display messages, removed point 5.
 * Fix fan kickstart code to remove bug for which the kickstart never happened in any condition, by explicitly setting the fan max speed during kickstart interval.
+* Configured z probing with a BLTouch sensor on pins 115 and 116, adding corresponding entries in fastio.h.
+* Enabled bed auto-leveling and distortion correction, change routines for contiguous grid point measurements.
