@@ -209,17 +209,18 @@ bool measureAutolevelPlane(Plane &plane) {
 	uid.refreshPage();
     builder.addPoint(EEPROM::zProbeX3(),EEPROM::zProbeY3(),h);
 #elif BED_LEVELING_METHOD == 1 // linear regression
-    float delta = 1.0 / (BED_LEVELING_GRID_SIZE - 1);
-    float ox = EEPROM::zProbeX1();
-    float oy = EEPROM::zProbeY1();
-    float ax = delta * (EEPROM::zProbeX2() - EEPROM::zProbeX1());
-    float ay = delta * (EEPROM::zProbeY2() - EEPROM::zProbeY1());
-    float bx = delta * (EEPROM::zProbeX3() - EEPROM::zProbeX1());
-    float by = delta * (EEPROM::zProbeY3() - EEPROM::zProbeY1());
-    for(int ix = 0; ix < BED_LEVELING_GRID_SIZE; ix++) {
-        for(int iy = 0; iy < BED_LEVELING_GRID_SIZE; iy++) {
-            float px = ox + static_cast<float>(ix) * ax + static_cast<float>(iy) * bx;
-            float py = oy + static_cast<float>(ix) * ay + static_cast<float>(iy) * by;
+    float lx = DISTORTION_XMIN, ly = DISTORTION_YMIN;
+    float ux = DISTORTION_XMAX, uy = DISTORTION_YMAX;
+    float dx = (ux - lx) / (BED_LEVELING_GRID_SIZE - 1);
+    float dy = (uy - ly) / (BED_LEVELING_GRID_SIZE - 1);
+    for (int iy = 0; iy < BED_LEVELING_GRID_SIZE; iy++) {
+        float py = ly + static_cast<float>(iy) * dy;
+        for (int ix = 0; ix < BED_LEVELING_GRID_SIZE; ix++) {
+            float px = static_cast<float>(ix) * dx;
+            if (iy % 2)
+                px = ux - px;
+            else
+                px = lx + px;
             Printer::moveTo(px,py,IGNORE_COORDINATE,IGNORE_COORDINATE,EEPROM::zProbeXYSpeed());
             float h = Printer::runZProbe(false,false);
             if(h == ILLEGAL_Z_PROBE)
@@ -502,13 +503,13 @@ void Printer::finishProbing() {
 This is the most important function for bed leveling. It does
 1. Run probe start script if first = true and runStartScript = true
 2. Position zProbe at current position if first = true. If we are more then maxStartHeight away from bed we also go down to that distance.
-3. Measure the the steps until probe hits the bed.
+3. Measure the steps until probe hits the bed.
 4. Undo positioning to z probe and run finish script if last = true.
 
 Now we compute the nozzle height as follows:
 a) Compute average height from repeated measurements
 b) Add zProbeHeight to correct difference between triggering point and nozzle height above bed
-c) If Z_PROBE_Z_OFFSET_MODE == 1 we add zProbeZOffset() that is coating thickness if we measure below coating with indictive sensor.
+c) If Z_PROBE_Z_OFFSET_MODE == 1 we add zProbeZOffset() that is coating thickness if we measure below coating with inductive sensor.
 d) Add distortion correction.
 e) Add bending correction
 

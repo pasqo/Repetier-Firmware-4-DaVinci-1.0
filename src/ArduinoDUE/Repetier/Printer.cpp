@@ -2428,7 +2428,7 @@ void Distortion::extrapolateCorners()
 
 bool Distortion::measure(void)
 {
-    fast8_t ix, iy;
+    fast8_t ix, iy, jx;
     float z = EEPROM::zProbeBedDistance() + (EEPROM::zProbeHeight() > 0 ? EEPROM::zProbeHeight() : 0);
     disable(false);
     //Com::printFLN(PSTR("radiusCorr:"), radiusCorrectionSteps);
@@ -2441,9 +2441,11 @@ bool Distortion::measure(void)
 	zCorrection += Printer::zBedOffset * Printer::axisStepsPerMM[Z_AXIS];
 #endif
 	Printer::startProbing(true);
-    for (iy = DISTORTION_CORRECTION_POINTS - 1; iy >= 0; iy--)
-        for (ix = 0; ix < DISTORTION_CORRECTION_POINTS; ix++)
+    for (iy = 0; iy < DISTORTION_CORRECTION_POINTS; iy++)
+    {
+        for (jx = 0; jx < DISTORTION_CORRECTION_POINTS; jx++)
         {
+        	ix = iy % 2 ? DISTORTION_CORRECTION_POINTS - 1 - jx : jx;
 #if (DRIVE_SYSTEM == DELTA) && DISTORTION_EXTRAPOLATE_CORNERS
             if (isCorner(ix, iy)) continue;
 #endif
@@ -2468,6 +2470,7 @@ bool Distortion::measure(void)
             setMatrix(floor(0.5f + Printer::axisStepsPerMM[Z_AXIS] * (z -zp)) + zCorrection,
             matrixIndex(ix,iy));
         }
+    }
 	Printer::finishProbing();
 #if (DRIVE_SYSTEM == DELTA) && DISTORTION_EXTRAPOLATE_CORNERS
     extrapolateCorners();

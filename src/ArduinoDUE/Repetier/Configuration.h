@@ -26,7 +26,7 @@
 #define REPURPOSE_FAN_TO_COOL_EXTRUSIONS 0 //Setting this to 1 will repurpose the main Extruder cooling fan to be controlled VIA M106/M107
                                            //Warning: for DaVinci 1.0 need to add a permanent fan with power supply to cool extruder
 
-#define UI_VERSION_STRING "Repetier Pasqo 6"
+#define UI_VERSION_STRING "Repetier Pasqo 7"
 
 // ################ END MANUAL SETTINGS ##########################
 
@@ -231,7 +231,7 @@ pins. Separate multiple GCODEs with \n
 
 /*Bed Coating menu
  */
-#define UI_BED_COATING 1
+#define UI_BED_COATING 0
  
 // ##########################################################################################
 // ##                               Calibration                                            ##
@@ -1273,7 +1273,7 @@ Mega. Used only for nonlinear systems like delta or tuga. */
  * first a z home to get some reference, then raise to ZHOME_HEAT_HEIGHT do xy homing and then after
  * heating to minimum ZHOME_MIN_TEMPERATURE will z home again for correct height.   
  * */
-#define HOMING_ORDER HOME_ORDER_XYZ // pasqo: TODO with Z probe is zmin stop if want to do it
+#define HOMING_ORDER HOME_ORDER_XYZ
 // Used for homing order HOME_ORDER_ZXYTZ
 #define ZHOME_MIN_TEMPERATURE 0
 // needs to heat all extruders (1) or only current extruder (0)
@@ -1552,9 +1552,9 @@ Servos are controlled by a pulse width normally between 500 and 2500 with 1500ms
 WARNING: Servos can draw a considerable amount of current. Make sure your system can handle this or you may risk your hardware!
 */
 
-#define FEATURE_SERVO 0 // pasqo: do this in v7
+#define FEATURE_SERVO 1 // pasqo: v7 with BLTouch
 // Servo pins on a RAMPS board are 11,6,5,4
-#define SERVO0_PIN 115 // pasqo: use the cartridge pin for the BLTouch servo.
+#define SERVO0_PIN 115 // pasqo: re-purpose cartridge 1 pin.
 #define SERVO1_PIN  -1
 #define SERVO2_PIN  -1
 #define SERVO3_PIN  -1
@@ -1598,8 +1598,8 @@ to recalibrate z.
 #define Z_PROBE_Z_OFFSET_MODE 0
 
 #if DAVINCI > 0
-#define FEATURE_Z_PROBE          false // pasqo: do it in v7
-#define Z_PROBE_PIN               117 // pasqo: BLTouch sensor using old bed sensor pin
+#define FEATURE_Z_PROBE          true // pasqo: v7 with BLTouch.
+#define Z_PROBE_PIN               116 // pasqo: re-purpose cartridge 2 pin.
 #else
 #define FEATURE_Z_PROBE         false
 #define Z_PROBE_PIN                -1
@@ -1608,28 +1608,26 @@ to recalibrate z.
 #define Z_PROBE_ON_HIGH             1 // pasqo: BLTouch
 #define Z_PROBE_X_OFFSET           40 // pasqo: BLTouch custom mount: the DV1.0 has X_HOME = -33 
                                       // therefore we can have the probe anywhere with X > 7
-                                      // which is ok for the closest knob at X = 15
+                                      // which is OK for the closest knob at X = 15
 #define Z_PROBE_Y_OFFSET            0 // pasqo: BLTouch custom mount.
-#define Z_PROBE_BED_DISTANCE       10 // pasqo: TODO: Z at which probing starts.
+#define Z_PROBE_BED_DISTANCE        2 // pasqo: Z at which probing starts.
                                       // Make sure the bed is in a sane state
                                       // after manual leveling and distance is safe.
-                                      // Lower to minimum after calibration.
+                                      // Lower to minimum Z_PROBE_HEIGHT + delta after calibration.
 
 // Waits for a signal to start. Valid signals are probe hit and ok button.
 // This is needful if you have the probe trigger by hand.
 #define Z_PROBE_WAIT_BEFORE_TEST    0
-#define Z_PROBE_SPEED               1 /** Speed of z-axis in mm/s when probing */
-#define Z_PROBE_XY_SPEED           30 // pasqo: TODO
-#define Z_PROBE_SWITCHING_DISTANCE  4 // BLTouch. Distance to safely switch off probe after it was activated
-#define Z_PROBE_REPETITIONS         2 // pasqo: TODO. BLTouch. Repetitions for probing at one point. 
+#define Z_PROBE_SPEED               4 // Speed of z-axis in mm/s when probing.
+#define Z_PROBE_XY_SPEED          120
+#define Z_PROBE_SWITCHING_DISTANCE  2 // BLTouch: Distance to pull up tip after activated to measure again.
+#define Z_PROBE_REPETITIONS         1 // BLTouch: Repetitions for probing at one point.
 /** The height is the difference between activated probe position and nozzle height. */
 #if MODEL==0
-// pasqo: Z_PROBE_HEIGHT is the height difference between z-probe tip in trigger mode and the bed (at Z=0).
-// The distance between the bed/extruder-tip(at ideal Z=0) and the tip of the sensor
-// when extended. So this means that probing starts at Z = Z_PROBE_BED_DISTANCE + Z_PROBE_HEIGHT
-// and ends at Z=Z_PROBE_HEIGHT.
-#define Z_PROBE_HEIGHT              0 // pasqo: TODO: BLTouch: adjust in EEPROM
-                                      // positive, should be around a few mm, 2 to 4?
+// pasqo: Z_PROBE_HEIGHT is the height difference between z-probe tip in trigger mode and the bed at Z=0,
+// or in other words, the distance between the extruder tip and the tip of the sensor when extended.
+// So this means that probing starts at Z=Z_PROBE_BED_DISTANCE and ends at Z=Z_PROBE_HEIGHT.
+#define Z_PROBE_HEIGHT           0.36 // BLTouch: adjust in EEPROM, should be lower than around 5-3=2mm.
 #else
 #define Z_PROBE_HEIGHT           0.54
 #endif
@@ -1662,14 +1660,14 @@ bending to both sides of the axis. So probe points 2 and 3 build the symmetric a
 point 1 is mirrored to 1m across the axis. Using the symmetry we then remove the bending
 from 1 and use that as plane.
 */
-#define BED_LEVELING_METHOD 0
+#define BED_LEVELING_METHOD 1
 /* How to correct rotation.
 0 = software side
 1 = motorized modification of 2 from 3 fixture points.
 */
 #define BED_CORRECTION_METHOD 0
 // Grid size for grid based plane measurement
-#define BED_LEVELING_GRID_SIZE 4
+#define BED_LEVELING_GRID_SIZE  10 // 20mm steps on 180x180.
 // Repetitions for motorized bed leveling
 #define BED_LEVELING_REPETITIONS 5
 /* These are the motor positions relative to bed origin. Only needed for
@@ -1685,27 +1683,27 @@ motorized bed leveling */
    This feature requires a working z-probe and you should have z-endstop at the top not at the bottom.
    The same 3 points are used for the G29 command.
 */
-#define FEATURE_AUTOLEVEL false // pasqo: TODO
+#define FEATURE_AUTOLEVEL true // pasqo: v7 with BLTouch.
 // Auto bed leveling.
 // pasqo: points correspond to knobs.
 // Check is clockwise starting from center knob.
 #if DAVINCI==1
-#define Z_PROBE_X1 100
-#define Z_PROBE_Y1 185
+#define Z_PROBE_X1  15
+#define Z_PROBE_Y1  30
 #define Z_PROBE_X2 185
 #define Z_PROBE_Y2  30
-#define Z_PROBE_X3  15
-#define Z_PROBE_Y3  30
+#define Z_PROBE_X3 100
+#define Z_PROBE_Y3 185
 // Manual bed leveling
 // pasqo: for manual bed leveling of a fairly planar bed we want to set
 // each knob independently first and then we check the center of the bed
 // and lower if needed.
-#define MANUAL_LEVEL_X1 100
-#define MANUAL_LEVEL_Y1 185
+#define MANUAL_LEVEL_X1 15
+#define MANUAL_LEVEL_Y1 30
 #define MANUAL_LEVEL_X2 185
 #define MANUAL_LEVEL_Y2 30
-#define MANUAL_LEVEL_X3 15
-#define MANUAL_LEVEL_Y3 30
+#define MANUAL_LEVEL_X3 100
+#define MANUAL_LEVEL_Y3 185
 #define MANUAL_LEVEL_X4 100
 #define MANUAL_LEVEL_Y4 100
 #endif
@@ -1783,15 +1781,15 @@ motorized bed leveling */
  * DISTORTION_CORRECTION_R is the distance of last row or column from center
  */
 
-#define DISTORTION_CORRECTION         0
-#define DISTORTION_CORRECTION_POINTS  5
+#define DISTORTION_CORRECTION         1 // pasqo: v7 with BLTouch
+#define DISTORTION_CORRECTION_POINTS 10 // pasqo: every 20 mm on 180x180.
 /* For delta printers you simply define the measured radius around origin */
-#define DISTORTION_CORRECTION_R       80
+#define DISTORTION_CORRECTION_R      80
 /* For all others you define the correction rectangle by setting the min/max coordinates. Make sure the the probe can reach all points! */
-#define DISTORTION_XMIN 10
-#define DISTORTION_YMIN 10
-#define DISTORTION_XMAX 190
-#define DISTORTION_YMAX 190
+#define DISTORTION_XMIN              10
+#define DISTORTION_YMIN              10
+#define DISTORTION_XMAX             190
+#define DISTORTION_YMAX             190
 
 /** Uses EEPROM instead of ram. Allows bigger matrix (up to 22x22) without any ram cost.
   Especially on arm based systems with cached EEPROM it is good, on AVR it has a small
@@ -1801,18 +1799,18 @@ motorized bed leveling */
 /** Correction computation is not a cheap operation and changes are only small. So it
 is not necessary to update it for every sub-line computed. For example lets take DELTA_SEGMENTS_PER_SECOND_PRINT = 150
 and fastest print speed 100 mm/s. So we have a maximum segment length of 100/150 = 0.66 mm.
-Now lats say our point field is 200 x 200 mm with 9 x 9 points. So between 2 points we have
+Now let's say our point field is 200 x 200 mm with 9 x 9 points. So between 2 points we have
 200 / (9-1) = 25 mm. So we need at least 25 / 0.66 = 37 lines to move to the next measuring
 point. So updating correction every 15 calls gives us at least 2 updates between the
 measured points.
 NOTE: Explicit z changes will always trigger an update!
 */
-#define DISTORTION_UPDATE_FREQUENCY   15
+#define DISTORTION_UPDATE_FREQUENCY 15
 /** z distortion degrades to 0 from this height on. You should start after the first layer to get
 best bonding with surface. */
-#define DISTORTION_START_DEGRADE 0.5
+#define DISTORTION_START_DEGRADE 0.4
 /** z distortion correction gets down to 0 at this height. */
-#define DISTORTION_END_HEIGHT 1.5
+#define DISTORTION_END_HEIGHT 1.0
 
 /* If your printer is not exactly square but is more like a parallelogram, you can
 use this to compensate the effect of printing squares like parallelograms. Set the

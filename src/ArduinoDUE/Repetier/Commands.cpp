@@ -1228,7 +1228,8 @@ void Commands::processGCode(GCode *com) {
 				Check_turntable();
 #endif
                 uint8_t p = (com->hasP() ? (uint8_t)com->P : 3);
-                if(Printer::runZProbe(p & 1,p & 2) == ILLEGAL_Z_PROBE) {
+                uint8_t r = (com->hasR() ? (uint8_t)com->R : 2);
+                if(Printer::runZProbe(p & 1, p & 2, r) == ILLEGAL_Z_PROBE) {
 					GCode::fatalError(PSTR("G30 probing failed!"));
 					//Davinci Specific
 					Printer::zprobe_ok = false;
@@ -1343,6 +1344,8 @@ void Commands::processGCode(GCode *com) {
                     Extruder::setTemperatureForExtruder(actTemp[Extruder::current->id], Extruder::current->id, false, actTemp[Extruder::current->id] > MAX_ROOM_TEMPERATURE);
 #endif
 #endif
+				    Printer::homeAxis(true, true, true);
+                    Printer::moveTo(IGNORE_COORDINATE,IGNORE_COORDINATE,EEPROM::zProbeBedDistance(),IGNORE_COORDINATE,Printer::homingFeedrate[Z_AXIS]);
                 }
             }
             break;
